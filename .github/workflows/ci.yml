@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  sdk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm typecheck
+      # Builds the examples with the CLI and runs them on the committed runtime.
+      - run: pnpm test
+
+  # The committed runtime/module.wasm is what every package ships, so it must
+  # be what its source builds.
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      WASI_SDK: ${{ github.workspace }}/../wasi-sdk
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install wasi-sdk 25
+        run: |
+          curl -sSfL -o wasi-sdk.tar.gz https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-25/wasi-sdk-25.0-x86_64-linux.tar.gz
+          echo "52640dde13599bf127a95499e61d6d640256119456d1af8897ab6725bcf3d89c  wasi-sdk.tar.gz" | sha256sum -c -
+          mkdir -p "$WASI_SDK"
+          tar -xzf wasi-sdk.tar.gz -C "$WASI_SDK" --strip-components=1
+          rm wasi-sdk.tar.gz
+      - name: Rebuild the runtime
+        run: runtime/build.sh
+      - name: The committed runtime is what its source builds
+        run: git diff --exit-code --stat runtime/module.wasm
+      - name: Lint the runtime
+        working-directory: runtime
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --target wasm32-wasip1 -- -D warnings

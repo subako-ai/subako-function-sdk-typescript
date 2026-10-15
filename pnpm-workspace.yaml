@@ -1,0 +1,7 @@
+packages:
+  - "."
+  - "examples/*"
+# Its postinstall only swaps the JS shim for the platform binary the lockfile
+# already pins, or fetches that binary unpinned when it is missing.
+allowBuilds:
+  esbuild: false

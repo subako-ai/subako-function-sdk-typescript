@@ -1,0 +1,7 @@
+{
+	"name": "example-github",
+	"private": true,
+	"type": "module",
+	"scripts": { "build": "subako-function build" },
+	"dependencies": { "@subako-ai/function-sdk": "workspace:*", "zod": "^4.6.7" }
+}

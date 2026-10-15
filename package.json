@@ -1,0 +1,58 @@
+{
+	"name": "@subako-ai/function-sdk",
+	"version": "0.1.0",
+	"description": "Write Subako function packages in TypeScript: tools that run in Subako's function worker.",
+	"license": "MIT OR Apache-2.0",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./mcp": {
+			"types": "./dist/mcp.d.ts",
+			"default": "./dist/mcp.js"
+		},
+		"./globals": {
+			"types": "./dist/globals.d.ts",
+			"default": "./dist/globals.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"bin": {
+		"subako-function": "./bin/subako-function.js"
+	},
+	"files": [
+		"bin",
+		"dist",
+		"runtime/module.wasm"
+	],
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"runtime": "./runtime/build.sh"
+	},
+	"dependencies": {
+		"esbuild": "^0.28.1"
+	},
+	"peerDependencies": {
+		"@modelcontextprotocol/server": "^2.3.1"
+	},
+	"peerDependenciesMeta": {
+		"@modelcontextprotocol/server": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@modelcontextprotocol/server": "^2.3.1",
+		"@types/node": "^24",
+		"typescript": "^7",
+		"vitest": "^4",
+		"zod": "^4.6.7"
+	},
+	"engines": {
+		"node": ">=20"
+	},
+	"packageManager": "pnpm@11.18.0"
+}
