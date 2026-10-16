@@ -23,7 +23,7 @@
 		"./package.json": "./package.json"
 	},
 	"bin": {
-		"subako-function": "./bin/subako-function.js"
+		"function-sdk": "./bin/function-sdk.js"
 	},
 	"files": [
 		"bin",

@@ -64,7 +64,7 @@ const call = (name: string, args: Record<string, unknown>) => ({ method: "tools/
 beforeAll(() => {
 	if (!existsSync(join(ROOT, "dist", "cli.js"))) throw new Error("build the SDK first: pnpm build");
 	for (const example of ["github", "github-mcp"]) {
-		execFileSync(process.execPath, [join(ROOT, "bin", "subako-function.js"), "build"], { cwd: join(ROOT, "examples", example), stdio: "pipe" });
+		execFileSync(process.execPath, [join(ROOT, "bin", "function-sdk.js"), "build"], { cwd: join(ROOT, "examples", example), stdio: "pipe" });
 	}
 }, 60_000);
 

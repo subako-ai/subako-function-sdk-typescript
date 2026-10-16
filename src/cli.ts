@@ -1,4 +1,4 @@
-// subako-function build [entry] [--out dir] [--no-minify] [--source]
+// npx @subako-ai/function-sdk build [entry] [--out dir] [--no-minify] [--source]
 //
 // Bundles the package's entry for the shared runtime and lays out the
 // directory `subako function create` and `push` take: the runtime as
@@ -28,7 +28,7 @@ const BYTECODE = "main.qjsbc";
 const ENTRIES = ["src/index.ts", "src/index.js", "index.ts", "index.js"];
 
 function fail(message: string): never {
-	console.error(`subako-function: ${message}`);
+	console.error(`@subako-ai/function-sdk: ${message}`);
 	process.exit(1);
 }
 
@@ -119,5 +119,5 @@ switch (command) {
 		await buildPackage(rest);
 		break;
 	default:
-		fail("usage: subako-function build [entry] [--out dir] [--no-minify] [--source]");
+		fail("usage: npx @subako-ai/function-sdk build [entry] [--out dir] [--no-minify] [--source]");
 }

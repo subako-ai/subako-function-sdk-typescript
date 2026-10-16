@@ -29,8 +29,8 @@ serve([repo]);
 Put a `subako-package.json` (`{"abi": 1, "name": ..., "description": ...}`) beside `src/index.ts`, then:
 
 ```sh
-subako-function build          # writes dist/
-subako function create dist    # or: subako function push <function-id> dist
+npx @subako-ai/function-sdk build   # writes dist/
+subako function create dist         # or: subako function push <function-id> dist
 ```
 
 See [examples/github](examples/github) and [examples/github-mcp](examples/github-mcp).

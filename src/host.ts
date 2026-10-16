@@ -27,7 +27,7 @@ declare global {
 export function host(): Host {
 	const found = globalThis.__subako;
 	if (found === undefined) {
-		throw new Error("this runs only inside Subako's function runtime; build the package with `subako-function build`");
+		throw new Error("this runs only inside Subako's function runtime; build the package with `npx @subako-ai/function-sdk build`");
 	}
 	return found;
 }
