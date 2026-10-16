@@ -17,6 +17,9 @@
 			"types": "./dist/globals.d.ts",
 			"default": "./dist/globals.js"
 		},
+		"./env": {
+			"types": "./env.d.ts"
+		},
 		"./package.json": "./package.json"
 	},
 	"bin": {
@@ -25,11 +28,12 @@
 	"files": [
 		"bin",
 		"dist",
+		"env.d.ts",
 		"runtime/module.wasm"
 	],
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
-		"typecheck": "tsc --noEmit",
+		"typecheck": "tsc --noEmit && tsc --noEmit -p test/env",
 		"test": "vitest run",
 		"runtime": "./runtime/build.sh"
 	},

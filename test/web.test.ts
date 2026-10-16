@@ -3,7 +3,7 @@ import "./host.js";
 import { describe, expect, it } from "vitest";
 
 import { imageFile } from "../src/answer.js";
-import { fetchShim, HeadersShim, TextDecoderShim, URLShim } from "../src/globals.js";
+import { fetchShim, HeadersShim, TextDecoderShim, URLSearchParamsShim, URLShim } from "../src/globals.js";
 import { HttpError, http } from "../src/http.js";
 import { answerHttp, httpSent } from "./host.js";
 
@@ -58,6 +58,20 @@ describe("fetch", () => {
 		expect(response.ok).toBe(true);
 		expect(response.headers.get("Content-Type")).toBe("application/json");
 		expect(await response.json()).toEqual({ ok: true });
+	});
+
+	it("takes a URL, a Headers and a form body", async () => {
+		answerHttp(() => ok(""));
+		await fetchShim(new URLShim("https://api.example.com/search"), {
+			method: "POST",
+			headers: new HeadersShim({ "X-Tag": "a" }),
+			body: new URLSearchParamsShim({ q: "a b" }),
+		});
+		expect(httpSent.at(-1)).toMatchObject({
+			url: "https://api.example.com/search",
+			headers: { "x-tag": "a", "content-type": "application/x-www-form-urlencoded;charset=UTF-8" },
+			body: { type: "text", text: "q=a+b" },
+		});
 	});
 
 	it("refuses a binary body", async () => {

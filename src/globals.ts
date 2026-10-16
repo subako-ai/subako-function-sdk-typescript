@@ -33,7 +33,7 @@ define("performance", { now: () => Date.now(), timeOrigin: Date.now() });
 
 export class TextEncoderShim {
 	readonly encoding = "utf-8";
-	encode(text = ""): Uint8Array {
+	encode(text = ""): Uint8Array<ArrayBuffer> {
 		return new Uint8Array(host().encodeUtf8(String(text)));
 	}
 }
@@ -252,11 +252,16 @@ export class URLShim {
 }
 define("URL", URLShim);
 
+/** Headers to start from: a record, pairs, or another Headers. */
+type HeadersInitLike = Record<string, string> | [string, string][] | { forEach(each: (value: string, name: string) => void): void };
+
 export class HeadersShim {
 	#map = new Map<string, string>();
-	constructor(init?: Record<string, string> | [string, string][] | HeadersShim) {
-		if (init instanceof HeadersShim) init.forEach((v, k) => this.set(k, v));
-		else if (init !== undefined) for (const [k, v] of Array.isArray(init) ? init : Object.entries(init)) this.append(k, v);
+	constructor(init?: HeadersInitLike) {
+		if (init === undefined) return;
+		if (Array.isArray(init)) for (const [k, v] of init) this.append(k, v);
+		else if (typeof init.forEach === "function") init.forEach((v: string, k: string) => this.set(k, v));
+		else for (const [k, v] of Object.entries(init as Record<string, string>)) this.append(k, v);
 	}
 	get(name: string) {
 		return this.#map.get(name.toLowerCase()) ?? null;
@@ -323,33 +328,36 @@ export class ResponseShim {
 }
 define("Response", ResponseShim);
 
+// What fetch takes, by shape, so the classes env.d.ts declares fit.
+type FetchInput = string | { readonly href: string } | { readonly url: string };
 type FetchInit = {
 	method?: string;
-	headers?: Record<string, string> | [string, string][] | HeadersShim;
-	body?: string | Uint8Array | ArrayBuffer | URLSearchParamsShim | null;
-	signal?: AbortSignalShim;
-	redirect?: "follow" | "manual" | "error";
+	headers?: HeadersInitLike;
+	body?: string | Uint8Array | ArrayBuffer | { getAll(name: string): string[]; toString(): string } | null;
+	signal?: { throwIfAborted(): void };
+	redirect?: "follow" | "manual";
 };
 
 /**
  * fetch over the worker's HTTP. Bodies travel as text; a binary one fails, so
  * save or send it as a volume file with `http.request` instead.
  */
-export async function fetchShim(input: string | URLShim | { url: string }, init: FetchInit = {}): Promise<ResponseShim> {
+export async function fetchShim(input: FetchInput, init: FetchInit = {}): Promise<ResponseShim> {
 	init.signal?.throwIfAborted();
-	const url = typeof input === "object" && "url" in input ? input.url : String(input);
+	const url = typeof input === "string" ? input : "url" in input ? input.url : input.href;
 	const headers = Object.fromEntries(new HeadersShim(init.headers ?? {}));
+	const sent = init.body;
 	let body: string | undefined;
-	if (init.body instanceof URLSearchParamsShim) {
-		body = init.body.toString();
-		headers["content-type"] ??= "application/x-www-form-urlencoded;charset=UTF-8";
-	} else if (typeof init.body === "string") body = init.body;
-	else if (init.body != null) {
+	if (typeof sent === "string") body = sent;
+	else if (sent instanceof ArrayBuffer || ArrayBuffer.isView(sent)) {
 		try {
-			body = new TextDecoderShim("utf-8", { fatal: true }).decode(init.body);
+			body = new TextDecoderShim("utf-8", { fatal: true }).decode(sent);
 		} catch {
 			throw new TypeError("fetch: a binary body cannot be sent; send it as a volume file with http.request");
 		}
+	} else if (sent != null) {
+		body = sent.toString();
+		headers["content-type"] ??= "application/x-www-form-urlencoded;charset=UTF-8";
 	}
 	try {
 		const response = await request({
