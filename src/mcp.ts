@@ -27,8 +27,14 @@ export class SubakoTransport {
 			}
 			const { id } = message;
 			if (id !== undefined && typeof message.method === "string") {
-				awaitAnswer(id, () =>
-					void this.send({ jsonrpc: "2.0", id, error: { code: -32603, message: `${message.method} returned a promise that nothing can settle` } } as JsonRpc),
+				awaitAnswer(
+					id,
+					() =>
+						void this.send({
+							jsonrpc: "2.0",
+							id,
+							error: { code: -32603, message: `${message.method} returned a promise that nothing can settle` },
+						} as JsonRpc),
 				);
 			}
 			this.onmessage?.(message);
@@ -58,5 +64,8 @@ export class SubakoTransport {
  * ```
  */
 export function serveMcp(create: Parameters<typeof serveStdio>[0]): void {
-	serveStdio(create, { transport: new SubakoTransport() as never, onerror: (error: unknown) => console.error(error) } as never);
+	serveStdio(create, {
+		transport: new SubakoTransport() as never,
+		onerror: (error: unknown) => console.error(error),
+	} as never);
 }

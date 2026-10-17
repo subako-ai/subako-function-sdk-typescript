@@ -7,11 +7,15 @@ import { fetchShim, HeadersShim, TextDecoderShim, URLSearchParamsShim, URLShim }
 import { HttpError, http } from "../src/http.js";
 import { answerHttp, httpSent } from "./host.js";
 
-const ok = (text: string, headers: Record<string, string> = {}) => ({ ok: { status: 200, headers, body: { type: "inline", text } } });
+const ok = (text: string, headers: Record<string, string> = {}) => ({
+	ok: { status: 200, headers, body: { type: "inline", text } },
+});
 
 describe("http.request", () => {
 	it("sends the worker's wire shape and reads its answer", async () => {
-		answerHttp(() => ({ ok: { status: 201, headers: { "x-a": "1" }, body: { type: "file", path: "/volume/out.bin", bytes: 3 } } }));
+		answerHttp(() => ({
+			ok: { status: 201, headers: { "x-a": "1" }, body: { type: "file", path: "/volume/out.bin", bytes: 3 } },
+		}));
 		const response = await http.request({
 			url: "https://api.example.com/things",
 			method: "POST",
@@ -75,12 +79,16 @@ describe("fetch", () => {
 	});
 
 	it("refuses a binary body", async () => {
-		await expect(fetchShim("https://api.example.com/", { method: "POST", body: new Uint8Array([0xff, 0xfe]) })).rejects.toThrow(/binary body/);
+		await expect(
+			fetchShim("https://api.example.com/", { method: "POST", body: new Uint8Array([0xff, 0xfe]) }),
+		).rejects.toThrow(/binary body/);
 	});
 
 	it("rejects with a TypeError when the worker refuses, as fetch does on a network error", async () => {
 		answerHttp(() => ({ error: { kind: "connection", message: "connection refused" } }));
-		await expect(fetchShim("https://api.example.com/")).rejects.toThrow(new TypeError("fetch failed: connection refused"));
+		await expect(fetchShim("https://api.example.com/")).rejects.toThrow(
+			new TypeError("fetch failed: connection refused"),
+		);
 	});
 });
 

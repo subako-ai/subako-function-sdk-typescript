@@ -30,7 +30,8 @@ const host: Host = {
 		const stat = nodeFs.statSync(path, { throwIfNoEntry: false });
 		return stat === undefined ? null : { size: stat.size, isDirectory: stat.isDirectory() };
 	},
-	readDir: (path) => nodeFs.readdirSync(path, { withFileTypes: true }).map((e) => ({ name: e.name, isDirectory: e.isDirectory() })),
+	readDir: (path) =>
+		nodeFs.readdirSync(path, { withFileTypes: true }).map((e) => ({ name: e.name, isDirectory: e.isDirectory() })),
 	encodeUtf8: (text) => new Uint8Array(Buffer.from(text, "utf8")).buffer,
 	decodeUtf8: (bytes, fatal) => new TextDecoder("utf-8", { fatal: fatal ?? false }).decode(bytes),
 	randomBytes: (length) => new Uint8Array(length).map(() => Math.floor(Math.random() * 256)).buffer,

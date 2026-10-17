@@ -23,8 +23,12 @@ const show = (value: unknown): string => {
 const log = (...values: unknown[]) => host().log(values.map(show).join(" "));
 define("console", { log, info: log, warn: log, error: log, debug: log, trace: log });
 
-define("setTimeout", (run: (...args: unknown[]) => void, ms?: number, ...args: unknown[]) => setTimer(() => run(...args), ms, false));
-define("setInterval", (run: (...args: unknown[]) => void, ms?: number, ...args: unknown[]) => setTimer(() => run(...args), ms, true));
+define("setTimeout", (run: (...args: unknown[]) => void, ms?: number, ...args: unknown[]) =>
+	setTimer(() => run(...args), ms, false),
+);
+define("setInterval", (run: (...args: unknown[]) => void, ms?: number, ...args: unknown[]) =>
+	setTimer(() => run(...args), ms, true),
+);
 define("clearTimeout", clearTimer);
 define("clearInterval", clearTimer);
 define("queueMicrotask", (run: () => void) => void Promise.resolve().then(run));
@@ -46,7 +50,9 @@ export class TextDecoderShim {
 	}
 	decode(bytes?: ArrayBuffer | ArrayBufferView): string {
 		if (bytes === undefined) return "";
-		const view = ArrayBuffer.isView(bytes) ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength) : new Uint8Array(bytes);
+		const view = ArrayBuffer.isView(bytes)
+			? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+			: new Uint8Array(bytes);
 		return host().decodeUtf8(view, this.fatal);
 	}
 }
@@ -75,7 +81,11 @@ define("btoa", (text: string) => {
 		const [a, b, c] = [text.charCodeAt(i), text.charCodeAt(i + 1), text.charCodeAt(i + 2)];
 		if (a > 255 || b > 255 || c > 255) throw new Error("btoa: a character is outside Latin-1");
 		const n = (a << 16) | ((b || 0) << 8) | (c || 0);
-		out += B64[(n >> 18) & 63]! + B64[(n >> 12) & 63]! + (Number.isNaN(b) ? "=" : B64[(n >> 6) & 63]!) + (Number.isNaN(c) ? "=" : B64[n & 63]!);
+		out +=
+			B64[(n >> 18) & 63]! +
+			B64[(n >> 12) & 63]! +
+			(Number.isNaN(b) ? "=" : B64[(n >> 6) & 63]!) +
+			(Number.isNaN(c) ? "=" : B64[n & 63]!);
 	}
 	return out;
 });
@@ -140,7 +150,8 @@ export class URLSearchParamsShim {
 				this.#pairs.push([decode(key), decode(value)]);
 			}
 		} else {
-			for (const [key, value] of Array.isArray(init) ? init : Object.entries(init)) this.#pairs.push([key, String(value)]);
+			for (const [key, value] of Array.isArray(init) ? init : Object.entries(init))
+				this.#pairs.push([key, String(value)]);
 		}
 	}
 	get(key: string) {
@@ -253,7 +264,10 @@ export class URLShim {
 define("URL", URLShim);
 
 /** Headers to start from: a record, pairs, or another Headers. */
-type HeadersInitLike = Record<string, string> | [string, string][] | { forEach(each: (value: string, name: string) => void): void };
+type HeadersInitLike =
+	| Record<string, string>
+	| [string, string][]
+	| { forEach(each: (value: string, name: string) => void): void };
 
 export class HeadersShim {
 	#map = new Map<string, string>();
@@ -302,7 +316,10 @@ export class ResponseShim {
 	readonly type = "basic";
 	bodyUsed = false;
 	readonly #text: string;
-	constructor(body: string | null = null, init: { status?: number; statusText?: string; headers?: Record<string, string>; url?: string } = {}) {
+	constructor(
+		body: string | null = null,
+		init: { status?: number; statusText?: string; headers?: Record<string, string>; url?: string } = {},
+	) {
 		this.#text = body ?? "";
 		this.status = init.status ?? 200;
 		this.statusText = init.statusText ?? "";
@@ -323,7 +340,12 @@ export class ResponseShim {
 		return new TextEncoderShim().encode(await this.text()).buffer;
 	}
 	clone() {
-		return new ResponseShim(this.#text, { status: this.status, statusText: this.statusText, headers: Object.fromEntries(this.headers), url: this.url });
+		return new ResponseShim(this.#text, {
+			status: this.status,
+			statusText: this.statusText,
+			headers: Object.fromEntries(this.headers),
+			url: this.url,
+		});
 	}
 }
 define("Response", ResponseShim);

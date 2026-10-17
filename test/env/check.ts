@@ -23,10 +23,12 @@ new TextEncoderShim() satisfies TextEncoder;
 new TextDecoderShim() satisfies TextDecoder;
 new AbortSignalShim() satisfies AbortSignal;
 
-// @ts-expect-error: no DOM
-document.title;
-// @ts-expect-error: no Node
-process.env;
+export const absent = [
+	// @ts-expect-error: no DOM
+	document,
+	// @ts-expect-error: no Node
+	process,
+];
 // @ts-expect-error: no Node
 Buffer.from("");
 // @ts-expect-error: no Node modules

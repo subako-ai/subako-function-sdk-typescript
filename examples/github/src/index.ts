@@ -59,12 +59,16 @@ const issues = tool({
 		limit: z.number().int().min(1).max(50).default(10).describe("how many to return"),
 	}),
 	output: z.object({
-		issues: z.array(z.object({ number: z.number(), title: z.string(), author: z.string(), comments: z.number(), url: z.string() })),
+		issues: z.array(
+			z.object({ number: z.number(), title: z.string(), author: z.string(), comments: z.number(), url: z.string() }),
+		),
 	}),
 	run: async ({ owner, repo, label, limit }) => {
 		const query = new URLSearchParams({ state: "open", per_page: String(limit) });
 		if (label !== undefined) query.set("labels", label);
-		const listed = (await github(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues?${query}`)) as {
+		const listed = (await github(
+			`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues?${query}`,
+		)) as {
 			number: number;
 			title: string;
 			user: { login: string };
@@ -76,7 +80,13 @@ const issues = tool({
 			// The issues API lists pull requests too.
 			issues: listed
 				.filter((issue) => issue.pull_request === undefined)
-				.map((issue) => ({ number: issue.number, title: issue.title, author: issue.user.login, comments: issue.comments, url: issue.html_url })),
+				.map((issue) => ({
+					number: issue.number,
+					title: issue.title,
+					author: issue.user.login,
+					comments: issue.comments,
+					url: issue.html_url,
+				})),
 		};
 	},
 });
@@ -89,7 +99,10 @@ const avatar = tool({
 	run: async ({ owner }) => {
 		// The image is binary, so the worker saves it to the volume rather than returning it.
 		const path = `/volume/tmp/avatar-${encodeURIComponent(owner)}.png`;
-		const response = await http.request({ url: `https://github.com/${encodeURIComponent(owner)}.png?size=200`, saveTo: path });
+		const response = await http.request({
+			url: `https://github.com/${encodeURIComponent(owner)}.png?size=200`,
+			saveTo: path,
+		});
 		if (response.status !== 200) throw new Error(`GitHub answered ${response.status} for ${owner}'s avatar`);
 		return answer({ path, bytes: response.file?.bytes ?? 0 }).withImageFile(path);
 	},

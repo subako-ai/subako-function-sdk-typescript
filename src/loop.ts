@@ -42,7 +42,9 @@ export function answered(id: Id): boolean {
 /** 0 to run jobs again, a delay in ms to sleep first, or -1 to read the next line. */
 export function tick(now = Date.now()): number {
 	let ran = false;
-	for (const [id, timer] of [...timers]) {
+	// A snapshot: a timer set while these run waits for the next tick, so a
+	// chain of zero-delay timers cannot keep this loop from returning.
+	for (const [id, timer] of Array.from(timers)) {
 		if (timer.at > now) continue;
 		ran = true;
 		if (timer.every === undefined) timers.delete(id);
@@ -59,7 +61,7 @@ export function tick(now = Date.now()): number {
 	for (const timer of timers.values()) next = next === undefined ? timer.at : Math.min(next, timer.at);
 	if (next !== undefined) return Math.max(0, next - now);
 	// Jobs and timers are all done, so nothing can answer these any more.
-	for (const [id, stuck] of [...waiting]) {
+	for (const [id, stuck] of waiting) {
 		waiting.delete(id);
 		stuck();
 	}

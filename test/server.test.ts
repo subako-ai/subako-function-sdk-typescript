@@ -16,9 +16,15 @@ const META = {
 let nextId = 1;
 
 /** Delivers a request and waits for the line it writes. */
-async function ask(method: string, params: Record<string, unknown> = {}, meta: Record<string, unknown> = META): Promise<Record<string, any>> {
+async function ask(
+	method: string,
+	params: Record<string, unknown> = {},
+	meta: Record<string, unknown> = META,
+): Promise<Record<string, any>> {
 	const before = written.length;
-	globalThis.__subako_deliver?.(JSON.stringify({ jsonrpc: "2.0", id: nextId++, method, params: { ...params, _meta: meta } }));
+	globalThis.__subako_deliver?.(
+		JSON.stringify({ jsonrpc: "2.0", id: nextId++, method, params: { ...params, _meta: meta } }),
+	);
 	for (let i = 0; i < 50 && written.length === before; i++) await new Promise((resolve) => setTimeout(resolve, 0));
 	expect(written.length).toBe(before + 1);
 	return JSON.parse(written.at(-1)!);
@@ -75,7 +81,15 @@ describe("the protocol", () => {
 
 	it("lists every tool with JSON Schemas from zod or as written", async () => {
 		const { result } = await ask("tools/list");
-		expect(result.tools.map((t: { name: string }) => t.name)).toEqual(["repo", "plain", "boom", "wrong", "chart", "slow", "stuck"]);
+		expect(result.tools.map((t: { name: string }) => t.name)).toEqual([
+			"repo",
+			"plain",
+			"boom",
+			"wrong",
+			"chart",
+			"slow",
+			"stuck",
+		]);
 		expect(result.tools[0].inputSchema).toMatchObject({ type: "object", required: ["owner"] });
 		expect(result.tools[0].inputSchema.$schema).toBeUndefined();
 		expect(result.tools[0].outputSchema).toMatchObject({ type: "object", required: ["owner", "limit"] });
@@ -90,7 +104,11 @@ describe("the protocol", () => {
 	});
 
 	it("refuses another revision, naming the one it speaks", async () => {
-		const { error } = await ask("server/discover", {}, { ...META, "io.modelcontextprotocol/protocolVersion": "2025-11-25" });
+		const { error } = await ask(
+			"server/discover",
+			{},
+			{ ...META, "io.modelcontextprotocol/protocolVersion": "2025-11-25" },
+		);
 		expect(error).toEqual({
 			code: -32022,
 			message: "Unsupported protocol version",
@@ -138,7 +156,10 @@ describe("a call", () => {
 	});
 
 	it("turns a thrown error into a tool error", async () => {
-		expect(await call("boom", {})).toMatchObject({ content: [{ type: "text", text: "GitHub is down" }], isError: true });
+		expect(await call("boom", {})).toMatchObject({
+			content: [{ type: "text", text: "GitHub is down" }],
+			isError: true,
+		});
 	});
 
 	it("refuses output its schema refuses", async () => {
@@ -155,14 +176,19 @@ describe("a call", () => {
 	});
 
 	it("answers an unknown tool with a tool error", async () => {
-		expect(await call("nope", {})).toMatchObject({ content: [{ type: "text", text: "unknown tool: nope" }], isError: true });
+		expect(await call("nope", {})).toMatchObject({
+			content: [{ type: "text", text: "unknown tool: nope" }],
+			isError: true,
+		});
 	});
 });
 
 describe("the loop the runtime drives", () => {
 	it("sleeps until a timer a call waits on, then runs it", async () => {
 		const before = written.length;
-		globalThis.__subako_deliver?.(JSON.stringify({ jsonrpc: "2.0", id: "slow", method: "tools/call", params: { name: "slow", _meta: META } }));
+		globalThis.__subako_deliver?.(
+			JSON.stringify({ jsonrpc: "2.0", id: "slow", method: "tools/call", params: { name: "slow", _meta: META } }),
+		);
 		await new Promise((resolve) => setTimeout(resolve, 0));
 		const wait = tick();
 		expect(wait).toBeGreaterThan(0);
@@ -172,6 +198,22 @@ describe("the loop the runtime drives", () => {
 		await new Promise((resolve) => setTimeout(resolve, 0));
 		expect(JSON.parse(written[before]!).result.structuredContent).toEqual({ waited: true });
 		expect(tick()).toBe(-1);
+	});
+
+	it("runs a timer set by a timer on the next tick", () => {
+		const runs: string[] = [];
+		setTimer(
+			() => {
+				runs.push("first");
+				setTimer(() => runs.push("second"), 0, false);
+			},
+			0,
+			false,
+		);
+		expect(tick()).toBe(0);
+		expect(runs).toEqual(["first"]);
+		expect(tick()).toBe(0);
+		expect(runs).toEqual(["first", "second"]);
 	});
 
 	it("reads on when no call waits, whatever timers are left", () => {
@@ -184,7 +226,9 @@ describe("the loop the runtime drives", () => {
 
 	it("answers a call nothing can settle once no timer is left to settle it", async () => {
 		const before = written.length;
-		globalThis.__subako_deliver?.(JSON.stringify({ jsonrpc: "2.0", id: "stuck", method: "tools/call", params: { name: "stuck", _meta: META } }));
+		globalThis.__subako_deliver?.(
+			JSON.stringify({ jsonrpc: "2.0", id: "stuck", method: "tools/call", params: { name: "stuck", _meta: META } }),
+		);
 		await new Promise((resolve) => setTimeout(resolve, 0));
 		const timer = setTimer(() => {}, 60_000, false);
 		expect(tick()).toBeGreaterThan(0);
@@ -201,7 +245,9 @@ describe("the loop the runtime drives", () => {
 
 describe("defining tools", () => {
 	it("refuses an input schema that is not an object", () => {
-		expect(() => tool({ name: "x", description: "", input: z.string() as never, run: () => ({}) })).toThrow(/object schema/);
+		expect(() => tool({ name: "x", description: "", input: z.string() as never, run: () => ({}) })).toThrow(
+			/object schema/,
+		);
 	});
 
 	it("refuses two tools with one name", () => {

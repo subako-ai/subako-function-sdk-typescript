@@ -9,7 +9,8 @@ export const fs = {
 	readBytes: (path: string): Uint8Array => new Uint8Array(host().readFile(path)),
 	writeText: (path: string, text: string): void => host().writeFile(path, new Uint8Array(host().encodeUtf8(text))),
 	writeBytes: (path: string, bytes: Uint8Array): void => host().writeFile(path, bytes),
-	appendText: (path: string, text: string): void => host().writeFile(path, new Uint8Array(host().encodeUtf8(text)), true),
+	appendText: (path: string, text: string): void =>
+		host().writeFile(path, new Uint8Array(host().encodeUtf8(text)), true),
 	/** Creates the directory and any parents it lacks. */
 	mkdir: (path: string): void => host().mkdir(path),
 	/** Removes a file, or a directory and everything in it. */

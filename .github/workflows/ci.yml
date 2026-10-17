@@ -22,7 +22,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm fmt:check
       - run: pnpm build
+      # Type-aware, so it reads the built declarations the examples import.
+      - run: pnpm lint
       - run: pnpm typecheck
       # Builds the examples with the CLI and runs them on the committed runtime.
       - run: pnpm test

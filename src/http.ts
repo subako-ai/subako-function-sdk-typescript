@@ -51,7 +51,13 @@ export class HttpError extends Error {
 }
 
 type Wire =
-	| { ok: { status: number; headers: Record<string, string>; body: { type: "inline"; text: string } | { type: "file"; path: string; bytes: number } } }
+	| {
+			ok: {
+				status: number;
+				headers: Record<string, string>;
+				body: { type: "inline"; text: string } | { type: "file"; path: string; bytes: number };
+			};
+	  }
 	| { error: { kind: HttpErrorKind; message: string } };
 
 /**

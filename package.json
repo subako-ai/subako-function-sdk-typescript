@@ -3,6 +3,15 @@
 	"version": "0.1.0",
 	"description": "Write Subako function packages in TypeScript: tools that run in Subako's function worker.",
 	"license": "MIT OR Apache-2.0",
+	"bin": {
+		"function-sdk": "./bin/function-sdk.js"
+	},
+	"files": [
+		"bin",
+		"dist",
+		"env.d.ts",
+		"runtime/module.wasm"
+	],
 	"type": "module",
 	"exports": {
 		".": {
@@ -22,23 +31,27 @@
 		},
 		"./package.json": "./package.json"
 	},
-	"bin": {
-		"function-sdk": "./bin/function-sdk.js"
-	},
-	"files": [
-		"bin",
-		"dist",
-		"env.d.ts",
-		"runtime/module.wasm"
-	],
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
 		"typecheck": "tsc --noEmit && tsc --noEmit -p test/env",
 		"test": "vitest run",
-		"runtime": "./runtime/build.sh"
+		"runtime": "./runtime/build.sh",
+		"lint": "oxlint --report-unused-disable-directives-severity=error",
+		"fmt": "oxfmt .",
+		"fmt:check": "oxfmt --check ."
 	},
 	"dependencies": {
 		"esbuild": "^0.28.1"
+	},
+	"devDependencies": {
+		"@modelcontextprotocol/server": "^2.3.1",
+		"@types/node": "^24",
+		"oxfmt": "0.61.0",
+		"oxlint": "1.76.0",
+		"oxlint-tsgolint": "7.0.2001",
+		"typescript": "^7",
+		"vitest": "^4",
+		"zod": "^4.6.7"
 	},
 	"peerDependencies": {
 		"@modelcontextprotocol/server": "^2.3.1"
@@ -47,13 +60,6 @@
 		"@modelcontextprotocol/server": {
 			"optional": true
 		}
-	},
-	"devDependencies": {
-		"@modelcontextprotocol/server": "^2.3.1",
-		"@types/node": "^24",
-		"typescript": "^7",
-		"vitest": "^4",
-		"zod": "^4.6.7"
 	},
 	"engines": {
 		"node": ">=20"

@@ -1,0 +1,8 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"useTabs": true,
+	"printWidth": 120,
+	"semi": true,
+	"singleQuote": false,
+	"ignorePatterns": ["**/dist/**", "node_modules/**", "runtime/target/**", "pnpm-lock.yaml", "runtime/Cargo.lock"]
+}

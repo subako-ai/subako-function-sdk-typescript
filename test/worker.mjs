@@ -30,7 +30,8 @@ function answer(request) {
 		return { ok: { status: 200, headers: {}, body: { type: "file", path: request.output.path, bytes: 4 } } };
 	}
 	const body = fixtures[url.pathname];
-	if (body === undefined) return { ok: { status: 404, headers: {}, body: { type: "inline", text: '{"message":"Not Found"}' } } };
+	if (body === undefined)
+		return { ok: { status: 404, headers: {}, body: { type: "inline", text: '{"message":"Not Found"}' } } };
 	return { ok: { status: 200, headers: { "content-type": "application/json" }, body: { type: "inline", text: body } } };
 }
 const subako_http = {

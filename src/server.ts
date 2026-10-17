@@ -22,7 +22,14 @@ export interface ServerInfo {
 declare const __SUBAKO_PACKAGE_NAME__: string | undefined;
 
 type Id = string | number;
-type Message = { jsonrpc?: unknown; id?: unknown; method?: unknown; params?: unknown; result?: unknown; error?: unknown };
+type Message = {
+	jsonrpc?: unknown;
+	id?: unknown;
+	method?: unknown;
+	params?: unknown;
+	result?: unknown;
+	error?: unknown;
+};
 
 /**
  * Answers the worker's MCP requests with `tools`. Call it once, from the
@@ -57,7 +64,8 @@ export function serve(tools: readonly Tool[], info?: Partial<ServerInfo>): void 
 			return refuse(null, INVALID_REQUEST, "not a message");
 		}
 		const id = typeof message.id === "string" || typeof message.id === "number" ? message.id : undefined;
-		if (message.jsonrpc !== "2.0") return refuse(id ?? null, INVALID_REQUEST, `unknown JSON-RPC version: ${String(message.jsonrpc)}`);
+		if (message.jsonrpc !== "2.0")
+			return refuse(id ?? null, INVALID_REQUEST, `unknown JSON-RPC version: ${String(message.jsonrpc)}`);
 		if (typeof message.method !== "string") {
 			if (id !== undefined && ("result" in message || "error" in message)) return;
 			return refuse(id ?? null, INVALID_REQUEST, "neither a request, a notification, nor a response");
@@ -91,9 +99,11 @@ export function serve(tools: readonly Tool[], info?: Partial<ServerInfo>): void 
 					cacheScope: "public",
 				});
 			case "tools/call": {
-				if (typeof params.name !== "string") return refuse(id, INVALID_PARAMS, "invalid tools/call params: name is not a string");
+				if (typeof params.name !== "string")
+					return refuse(id, INVALID_PARAMS, "invalid tools/call params: name is not a string");
 				const tool = byName.get(params.name);
-				if (tool === undefined) return respond(id, { content: [{ type: "text", text: `unknown tool: ${params.name}` }], isError: true });
+				if (tool === undefined)
+					return respond(id, { content: [{ type: "text", text: `unknown tool: ${params.name}` }], isError: true });
 				awaitAnswer(id, () =>
 					respond(id, {
 						content: [{ type: "text", text: `${tool.name} returned a promise that nothing can settle` }],
@@ -109,5 +119,4 @@ export function serve(tools: readonly Tool[], info?: Partial<ServerInfo>): void 
 				return refuse(id, METHOD_NOT_FOUND, `unknown method: ${message.method}`);
 		}
 	};
-
 }

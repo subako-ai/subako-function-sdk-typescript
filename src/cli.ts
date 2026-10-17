@@ -43,7 +43,8 @@ function readManifest(root: string): { abi: 1; name: string; description: string
 	}
 	const { abi, name, description } = manifest as Record<string, unknown>;
 	if (abi !== 1) fail(`${MANIFEST}: abi must be 1`);
-	if (typeof name !== "string" || typeof description !== "string") fail(`${MANIFEST}: name and description must be strings`);
+	if (typeof name !== "string" || typeof description !== "string")
+		fail(`${MANIFEST}: name and description must be strings`);
 	return { abi, name, description };
 }
 
@@ -91,7 +92,11 @@ async function buildPackage(args: string[]): Promise<void> {
 	}).catch(() => fail("the bundle did not build"));
 	if (result.errors.length > 0) fail("the bundle did not build");
 
-	const runtime = join(dirname(createRequire(import.meta.url).resolve("@subako-ai/function-sdk/package.json")), "runtime", "module.wasm");
+	const runtime = join(
+		dirname(createRequire(import.meta.url).resolve("@subako-ai/function-sdk/package.json")),
+		"runtime",
+		"module.wasm",
+	);
 	if (!existsSync(runtime)) fail(`the runtime is missing from ${runtime}`);
 	cpSync(runtime, join(out, "module.wasm"));
 	if (!values.source) {
@@ -99,12 +104,20 @@ async function buildPackage(args: string[]): Promise<void> {
 		rmSync(join(out, "assets", SOURCE));
 	}
 	writeFileSync(join(out, MANIFEST), `${JSON.stringify(manifest, null, 2)}\n`);
-	console.log(`built ${manifest.name} into ${relative(root, out) || "."}; upload it with: subako function create ${relative(root, out)}`);
+	console.log(
+		`built ${manifest.name} into ${relative(root, out) || "."}; upload it with: subako function create ${relative(root, out)}`,
+	);
 }
 
 /** Has the runtime write `main.js` in `assets` as bytecode beside it. */
 async function compile(runtime: string, assets: string): Promise<void> {
-	const wasi = new WASI({ version: "preview1", args: ["module", "--compile"], env: {}, preopens: { "/package": assets }, returnOnExit: true });
+	const wasi = new WASI({
+		version: "preview1",
+		args: ["module", "--compile"],
+		env: {},
+		preopens: { "/package": assets },
+		returnOnExit: true,
+	});
 	const unavailable = () => -1;
 	const instance = await WebAssembly.instantiate(await WebAssembly.compile(readFileSync(runtime)), {
 		...wasi.getImportObject(),

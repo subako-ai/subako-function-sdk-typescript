@@ -71,7 +71,9 @@ serveMcp(() => {
 		async ({ owner, repo, label, limit }) => {
 			const query = new URLSearchParams({ state: "open", per_page: String(limit) });
 			if (label !== undefined) query.set("labels", label);
-			const listed = (await github(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues?${query}`)) as {
+			const listed = (await github(
+				`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues?${query}`,
+			)) as {
 				number: number;
 				title: string;
 				user: { login: string };
@@ -81,7 +83,12 @@ serveMcp(() => {
 			return structured({
 				issues: listed
 					.filter((issue) => issue.pull_request === undefined)
-					.map((issue) => ({ number: issue.number, title: issue.title, author: issue.user.login, url: issue.html_url })),
+					.map((issue) => ({
+						number: issue.number,
+						title: issue.title,
+						author: issue.user.login,
+						url: issue.html_url,
+					})),
 			});
 		},
 	);
@@ -93,7 +100,10 @@ serveMcp(() => {
 		},
 		async ({ owner }) => {
 			const path = `/volume/tmp/avatar-${encodeURIComponent(owner)}.png`;
-			const response = await http.request({ url: `https://github.com/${encodeURIComponent(owner)}.png?size=200`, saveTo: path });
+			const response = await http.request({
+				url: `https://github.com/${encodeURIComponent(owner)}.png?size=200`,
+				saveTo: path,
+			});
 			if (response.status !== 200) throw new Error(`GitHub answered ${response.status} for ${owner}'s avatar`);
 			const saved = { path, bytes: response.file?.bytes ?? 0 };
 			return { ...structured(saved), content: [...structured(saved).content, imageFile(path) as never] };
