@@ -1,6 +1,6 @@
 {
 	"name": "@subako-ai/function-sdk",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "Write Subako function packages in TypeScript: tools that run in Subako's function worker.",
 	"license": "MIT OR Apache-2.0",
 	"repository": {

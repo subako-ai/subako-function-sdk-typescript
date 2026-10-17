@@ -107,6 +107,15 @@ beforeAll(() => {
 	}
 }, 60_000);
 
+describe("pack", () => {
+	it("packs a built package into the archive the upload takes", () => {
+		const cwd = join(ROOT, "examples", "github");
+		execFileSync(process.execPath, [join(ROOT, "bin", "function-sdk.js"), "pack"], { cwd, stdio: "pipe" });
+		const listing = execFileSync("tar", ["-tzf", "github.tar.gz"], { cwd, encoding: "utf8" });
+		expect(listing.trim().split("\n")).toEqual(["assets/main.qjsbc", "module.wasm", "subako-package.json"]);
+	});
+});
+
 describe.each(["github", "github-mcp"])("%s on the runtime", (example) => {
 	it("is surveyed", async () => {
 		const { answers } = await session(example, [{ method: "server/discover" }, { method: "tools/list" }]);
