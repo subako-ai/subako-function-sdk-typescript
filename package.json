@@ -15,14 +15,17 @@
 	"type": "module",
 	"exports": {
 		".": {
+			"subako-function-sdk-source": "./src/index.ts",
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
 		},
 		"./mcp": {
+			"subako-function-sdk-source": "./src/mcp.ts",
 			"types": "./dist/mcp.d.ts",
 			"default": "./dist/mcp.js"
 		},
 		"./globals": {
+			"subako-function-sdk-source": "./src/globals.ts",
 			"types": "./dist/globals.d.ts",
 			"default": "./dist/globals.js"
 		},
