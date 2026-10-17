@@ -10,7 +10,9 @@
 		"bin",
 		"dist",
 		"env.d.ts",
-		"runtime/module.wasm"
+		"runtime/module.wasm",
+		"LICENSE-MIT",
+		"LICENSE-APACHE"
 	],
 	"type": "module",
 	"exports": {
@@ -36,6 +38,7 @@
 	},
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
+		"prepack": "pnpm build",
 		"typecheck": "tsc --noEmit && tsc --noEmit -p test/env",
 		"test": "vitest run",
 		"runtime": "./runtime/build.sh",
