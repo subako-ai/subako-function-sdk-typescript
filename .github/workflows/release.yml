@@ -1,0 +1,57 @@
+name: release
+
+# Pushing a tag like `v0.1.1` publishes @subako-ai/function-sdk at 0.1.1. npm
+# trusts this file, in this repository, running in the `npm-release`
+# environment: the job trades its OIDC token for a publish token that lasts one
+# publish, so no npm token is stored.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+
+jobs:
+  check:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: The tag is on main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - name: The tag names the package's version
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          test "$GITHUB_REF_NAME" = "v$version" || { echo "$GITHUB_REF_NAME does not name version $version"; exit 1; }
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
+      # No `registry-url`, which would write an .npmrc expecting NODE_AUTH_TOKEN,
+      # and no cache, so nothing another workflow saved reaches the published build.
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+
+      - run: pnpm install --frozen-lockfile
+
+      # prepack builds dist/. pnpm 11 does the OIDC exchange itself. Detached at
+      # the tag, the checkout is on no branch, hence --no-git-checks; the step
+      # above checked the tag against main.
+      - name: Publish
+        run: pnpm publish --access public --no-git-checks

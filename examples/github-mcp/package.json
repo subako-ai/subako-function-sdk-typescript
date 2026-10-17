@@ -1,0 +1,13 @@
+{
+	"name": "example-github-mcp",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "npx @subako-ai/function-sdk build"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/server": "^2.3.1",
+		"@subako-ai/function-sdk": "workspace:*",
+		"zod": "^4.6.7"
+	}
+}

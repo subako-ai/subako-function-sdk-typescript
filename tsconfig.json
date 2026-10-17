@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"target": "ES2023",
+		"lib": ["ES2023", "DOM"],
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noFallthroughCasesInSwitch": true,
+		"verbatimModuleSyntax": true,
+		"isolatedModules": true,
+		"skipLibCheck": true,
+		"types": ["node"],
+		"customConditions": ["subako-function-sdk-source"]
+	},
+	"include": ["src", "test", "examples"],
+	"exclude": ["test/env"]
+}

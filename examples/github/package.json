@@ -1,0 +1,12 @@
+{
+	"name": "example-github",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "npx @subako-ai/function-sdk build"
+	},
+	"dependencies": {
+		"@subako-ai/function-sdk": "workspace:*",
+		"zod": "^4.6.7"
+	}
+}

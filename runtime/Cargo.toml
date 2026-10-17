@@ -1,0 +1,20 @@
+[package]
+name = "subako-function-runtime-js"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+description = "The QuickJS module every JavaScript function package shares: it runs /package/main.js."
+
+[[bin]]
+name = "module"
+path = "src/main.rs"
+
+[dependencies]
+rquickjs = "0.14"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
+codegen-units = 1

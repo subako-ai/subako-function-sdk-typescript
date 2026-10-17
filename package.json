@@ -1,0 +1,74 @@
+{
+	"name": "@subako-ai/function-sdk",
+	"version": "0.1.1",
+	"description": "Write Subako function packages in TypeScript: tools that run in Subako's function worker.",
+	"license": "MIT OR Apache-2.0",
+	"bin": {
+		"function-sdk": "./bin/function-sdk.js"
+	},
+	"files": [
+		"bin",
+		"dist",
+		"env.d.ts",
+		"runtime/module.wasm",
+		"LICENSE-MIT",
+		"LICENSE-APACHE"
+	],
+	"type": "module",
+	"exports": {
+		".": {
+			"subako-function-sdk-source": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./mcp": {
+			"subako-function-sdk-source": "./src/mcp.ts",
+			"types": "./dist/mcp.d.ts",
+			"default": "./dist/mcp.js"
+		},
+		"./globals": {
+			"subako-function-sdk-source": "./src/globals.ts",
+			"types": "./dist/globals.d.ts",
+			"default": "./dist/globals.js"
+		},
+		"./env": {
+			"types": "./env.d.ts"
+		},
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"prepack": "pnpm build",
+		"typecheck": "tsc --noEmit && tsc --noEmit -p test/env",
+		"test": "vitest run",
+		"runtime": "./runtime/build.sh",
+		"lint": "oxlint --report-unused-disable-directives-severity=error",
+		"fmt": "oxfmt .",
+		"fmt:check": "oxfmt --check ."
+	},
+	"dependencies": {
+		"esbuild": "^0.28.1"
+	},
+	"devDependencies": {
+		"@modelcontextprotocol/server": "^2.3.1",
+		"@types/node": "^24",
+		"oxfmt": "0.61.0",
+		"oxlint": "1.76.0",
+		"oxlint-tsgolint": "7.0.2001",
+		"typescript": "^7",
+		"vitest": "^4",
+		"zod": "^4.6.7"
+	},
+	"peerDependencies": {
+		"@modelcontextprotocol/server": "^2.3.1"
+	},
+	"peerDependenciesMeta": {
+		"@modelcontextprotocol/server": {
+			"optional": true
+		}
+	},
+	"engines": {
+		"node": ">=20"
+	},
+	"packageManager": "pnpm@11.18.0"
+}
