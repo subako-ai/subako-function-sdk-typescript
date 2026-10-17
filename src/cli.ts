@@ -7,13 +7,20 @@
 //
 // The bundle ships as QuickJS bytecode, which the runtime itself compiles
 // here, so a call skips parsing it. --source ships assets/main.js instead.
+//
+// npx @subako-ai/function-sdk pack [dir] [--out file]
+//
+// Packs a built directory, dist/ unless named, into the gzipped tar those
+// commands also take, <name>.tar.gz beside it unless named.
 
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { WASI } from "node:wasi";
 import { build } from "esbuild";
+
+import { gzippedTar, type TarEntry } from "./tar.js";
 
 // The runtime compiles the bundle under node:wasi, whose experimental notice
 // says nothing to someone building a package.
@@ -32,9 +39,16 @@ function fail(message: string): never {
 	process.exit(1);
 }
 
-function readManifest(root: string): { abi: 1; name: string; description: string } {
+function readManifest(
+	root: string,
+	missing = `write {"abi": 1, "name": ..., "description": ...}`,
+): {
+	abi: 1;
+	name: string;
+	description: string;
+} {
 	const path = join(root, MANIFEST);
-	if (!existsSync(path)) fail(`no ${MANIFEST} in ${root}; write {"abi": 1, "name": ..., "description": ...}`);
+	if (!existsSync(path)) fail(`no ${MANIFEST} in ${root}; ${missing}`);
 	let manifest: unknown;
 	try {
 		manifest = JSON.parse(readFileSync(path, "utf8"));
@@ -105,8 +119,42 @@ async function buildPackage(args: string[]): Promise<void> {
 	}
 	writeFileSync(join(out, MANIFEST), `${JSON.stringify(manifest, null, 2)}\n`);
 	console.log(
-		`built ${manifest.name} into ${relative(root, out) || "."}; upload it with: subako function create ${relative(root, out)}`,
+		`built ${manifest.name} into ${relative(root, out) || "."}; pack it with: npx @subako-ai/function-sdk pack ${relative(root, out)}`,
 	);
+}
+
+function packPackage(args: string[]): void {
+	const { values, positionals } = parseArgs({
+		args,
+		allowPositionals: true,
+		options: { out: { type: "string" } },
+	});
+	const root = process.cwd();
+	const dir = resolve(root, positionals[0] ?? "dist");
+	const manifest = readManifest(dir, "build the package first: npx @subako-ai/function-sdk build");
+	if (!existsSync(join(dir, "module.wasm"))) fail(`no module.wasm in ${dir}; build the package first`);
+	const out = resolve(root, values.out ?? join(dirname(dir), `${manifest.name}.tar.gz`));
+	if (out.startsWith(`${dir}/`)) fail("the archive cannot go inside the directory it packs");
+	writeFileSync(out, gzippedTar(walk(dir, dir)));
+	console.log(
+		`packed ${relative(root, dir) || "."} into ${relative(root, out)}; upload it with: subako function create ${relative(root, out)}`,
+	);
+}
+
+/**
+ * Every regular file under `dir`, by its "/"-joined path from `root`. A
+ * symlink is refused rather than followed, since its target would be
+ * uploaded under a name that does not name it.
+ */
+function walk(root: string, dir: string): TarEntry[] {
+	return readdirSync(dir).flatMap((name) => {
+		const path = join(dir, name);
+		const stat = lstatSync(path);
+		if (stat.isSymbolicLink()) fail(`${path} is a symlink, which a bundle may not contain`);
+		if (stat.isDirectory()) return walk(root, path);
+		if (!stat.isFile()) return [];
+		return [{ path: relative(root, path).split(sep).join("/"), bytes: readFileSync(path) }];
+	});
 }
 
 /** Has the runtime write `main.js` in `assets` as bytecode beside it. */
@@ -131,6 +179,12 @@ switch (command) {
 	case "build":
 		await buildPackage(rest);
 		break;
+	case "pack":
+		packPackage(rest);
+		break;
 	default:
-		fail("usage: npx @subako-ai/function-sdk build [entry] [--out dir] [--no-minify] [--source]");
+		fail(
+			"usage: npx @subako-ai/function-sdk build [entry] [--out dir] [--no-minify] [--source]\n" +
+				"       npx @subako-ai/function-sdk pack [dir] [--out file]",
+		);
 }

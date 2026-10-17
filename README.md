@@ -30,7 +30,8 @@ Put a `subako-package.json` (`{"abi": 1, "name": ..., "description": ...}`) besi
 
 ```sh
 npx @subako-ai/function-sdk build   # writes dist/
-subako function create dist         # or: subako function push <function-id> dist
+npx @subako-ai/function-sdk pack    # packs dist/ into <name>.tar.gz
+subako function create <name>.tar.gz   # or: subako function push <function-id> <name>.tar.gz
 ```
 
 See [examples/github](examples/github) and [examples/github-mcp](examples/github-mcp).
