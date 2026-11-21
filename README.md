@@ -34,6 +34,13 @@ npx @subako-ai/function-sdk pack    # packs dist/ into <name>.tar.gz
 subako function create <name>.tar.gz   # or: subako function push <function-id> <name>.tar.gz
 ```
 
+To try `dist/` before uploading it, run it on the function worker's own runtime with the `subako` CLI (macOS and Linux). A run reaches no network unless a flag allows it, and prints what the function logged:
+
+```sh
+subako function tools dist
+subako function run dist repo '{"owner": "microsoft", "repo": "typescript"}' --allow-host api.github.com
+```
+
 See [examples/github](examples/github) and [examples/github-mcp](examples/github-mcp).
 
 ## License
