@@ -248,7 +248,7 @@ fn remove<'js>(ctx: Ctx<'js>, path: String) -> rquickjs::Result<()> {
     removed.map_err(|e| io_error(&ctx, &path, e))
 }
 
-/// `{size, isDirectory}`, or null when nothing is at `path`.
+/// `{size, isDirectory}`, or undefined when nothing is at `path`.
 fn stat<'js>(ctx: Ctx<'js>, path: String) -> rquickjs::Result<Option<Object<'js>>> {
     match std::fs::metadata(&path) {
         Ok(meta) => {

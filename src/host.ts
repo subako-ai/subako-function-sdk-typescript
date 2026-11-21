@@ -1,3 +1,8 @@
+export interface Stat {
+	size: number;
+	isDirectory: boolean;
+}
+
 /** The primitives the shared runtime module gives the bundle as `__subako`. */
 export interface Host {
 	/** Writes one stdout line, flushed. */
@@ -10,7 +15,8 @@ export interface Host {
 	writeFile(path: string, bytes: Uint8Array, append?: boolean): void;
 	mkdir(path: string): void;
 	remove(path: string): void;
-	stat(path: string): { size: number; isDirectory: boolean } | null;
+	/** Undefined when nothing is at `path`: QuickJS spells Rust's `None` so. */
+	stat(path: string): Stat | undefined;
 	readDir(path: string): { name: string; isDirectory: boolean }[];
 	encodeUtf8(text: string): ArrayBuffer;
 	decodeUtf8(bytes: Uint8Array, fatal?: boolean): string;

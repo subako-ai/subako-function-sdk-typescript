@@ -1,4 +1,4 @@
-import { host } from "./host.js";
+import { host, type Stat } from "./host.js";
 
 /**
  * The module's files: `/volume` is the session's, shared with the agent and
@@ -16,7 +16,7 @@ export const fs = {
 	/** Removes a file, or a directory and everything in it. */
 	remove: (path: string): void => host().remove(path),
 	/** `{ size, isDirectory }`, or null when nothing is there. */
-	stat: (path: string) => host().stat(path),
-	exists: (path: string): boolean => host().stat(path) !== null,
+	stat: (path: string): Stat | null => host().stat(path) ?? null,
+	exists: (path: string): boolean => host().stat(path) !== undefined,
 	list: (path: string) => host().readDir(path),
 };

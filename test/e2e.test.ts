@@ -50,7 +50,7 @@ interface Session {
 }
 
 async function session(
-	example: string,
+	dist: string,
 	requests: { method: string; params?: Record<string, unknown> }[],
 ): Promise<Session> {
 	const volume = mkdtempSync(join(tmpdir(), "subako-volume-"));
@@ -58,7 +58,7 @@ async function session(
 	writeFileSync(fixtures, JSON.stringify(FIXTURES));
 	const child: ChildProcessWithoutNullStreams = spawn(process.execPath, [
 		join(ROOT, "test", "worker.mjs"),
-		join(ROOT, "examples", example, "dist"),
+		dist,
 		volume,
 		fixtures,
 	]);
@@ -92,6 +92,11 @@ async function session(
 	return { answers, volume, http };
 }
 
+const EXAMPLES = ["github", "github-mcp"];
+const example = (name: string) => join(ROOT, "examples", name);
+/** A package whose one tool reports what `fs` sees at a path. */
+const FS_PACKAGE = join(ROOT, "test", "fs-package");
+
 const call = (name: string, args: Record<string, unknown>) => ({
 	method: "tools/call",
 	params: { name, arguments: args },
@@ -99,11 +104,8 @@ const call = (name: string, args: Record<string, unknown>) => ({
 
 beforeAll(() => {
 	if (!existsSync(join(ROOT, "dist", "cli.js"))) throw new Error("build the SDK first: pnpm build");
-	for (const example of ["github", "github-mcp"]) {
-		execFileSync(process.execPath, [join(ROOT, "bin", "function-sdk.js"), "build"], {
-			cwd: join(ROOT, "examples", example),
-			stdio: "pipe",
-		});
+	for (const cwd of [...EXAMPLES.map(example), FS_PACKAGE]) {
+		execFileSync(process.execPath, [join(ROOT, "bin", "function-sdk.js"), "build"], { cwd, stdio: "pipe" });
 	}
 }, 60_000);
 
@@ -116,15 +118,27 @@ describe("pack", () => {
 	});
 });
 
-describe.each(["github", "github-mcp"])("%s on the runtime", (example) => {
+describe("fs on the runtime", () => {
+	it("tells a missing path from a present one", async () => {
+		const { answers } = await session(join(FS_PACKAGE, "dist"), [
+			call("look", { path: "/volume/missing" }),
+			call("look", { path: "/volume" }),
+		]);
+		expect(answers[0]!.result.structuredContent).toEqual({ exists: false, stat: null });
+		expect(answers[1]!.result.structuredContent).toMatchObject({ exists: true, stat: { isDirectory: true } });
+	});
+});
+
+describe.each(EXAMPLES)("%s on the runtime", (name) => {
+	const dist = join(example(name), "dist");
 	it("is surveyed", async () => {
-		const { answers } = await session(example, [{ method: "server/discover" }, { method: "tools/list" }]);
+		const { answers } = await session(dist, [{ method: "server/discover" }, { method: "tools/list" }]);
 		expect(answers[0]!.result.supportedVersions).toContain("2026-07-28");
 		expect(answers[1]!.result.tools.map((t: { name: string }) => t.name).sort()).toEqual(["avatar", "issues", "repo"]);
 	});
 
 	it("reads a repository through fetch", async () => {
-		const { answers, http } = await session(example, [call("repo", { owner: "microsoft", repo: "typescript" })]);
+		const { answers, http } = await session(dist, [call("repo", { owner: "microsoft", repo: "typescript" })]);
 		expect(answers[0]!.result.structuredContent).toMatchObject({ full_name: "microsoft/TypeScript", stars: 100000 });
 		expect(http[0]).toMatchObject({
 			method: "GET",
@@ -134,7 +148,7 @@ describe.each(["github", "github-mcp"])("%s on the runtime", (example) => {
 	});
 
 	it("leaves pull requests out of the issues", async () => {
-		const { answers, http } = await session(example, [
+		const { answers, http } = await session(dist, [
 			call("issues", { owner: "microsoft", repo: "typescript", label: "Bug" }),
 		]);
 		expect(answers[0]!.result.structuredContent.issues.map((i: { number: number }) => i.number)).toEqual([2]);
@@ -144,7 +158,7 @@ describe.each(["github", "github-mcp"])("%s on the runtime", (example) => {
 	});
 
 	it("turns a missing repository and bad input into tool errors", async () => {
-		const { answers, http } = await session(example, [
+		const { answers, http } = await session(dist, [
 			call("repo", { owner: "nobody", repo: "nothing" }),
 			call("repo", { owner: "x" }),
 		]);
@@ -157,7 +171,7 @@ describe.each(["github", "github-mcp"])("%s on the runtime", (example) => {
 	});
 
 	it("saves an avatar to the volume and shows it", async () => {
-		const { answers, volume } = await session(example, [call("avatar", { owner: "microsoft" })]);
+		const { answers, volume } = await session(dist, [call("avatar", { owner: "microsoft" })]);
 		expect(answers[0]!.result.content.at(-1)).toEqual({
 			type: "resource_link",
 			uri: "volume:///tmp/avatar-microsoft.png",

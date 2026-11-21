@@ -28,7 +28,7 @@ const host: Host = {
 	remove: (path) => nodeFs.rmSync(path, { recursive: true, force: true }),
 	stat: (path) => {
 		const stat = nodeFs.statSync(path, { throwIfNoEntry: false });
-		return stat === undefined ? null : { size: stat.size, isDirectory: stat.isDirectory() };
+		return stat === undefined ? undefined : { size: stat.size, isDirectory: stat.isDirectory() };
 	},
 	readDir: (path) =>
 		nodeFs.readdirSync(path, { withFileTypes: true }).map((e) => ({ name: e.name, isDirectory: e.isDirectory() })),

@@ -1,0 +1,5 @@
+{
+	"abi": 1,
+	"name": "fs-check",
+	"description": "Reports what fs sees at a path, so the tests can read it on the runtime."
+}
